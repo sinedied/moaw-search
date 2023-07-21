@@ -1,0 +1,10 @@
+{
+  "name": "moaw-search",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "license": "Apache-2.0"
+}

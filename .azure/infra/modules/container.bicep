@@ -46,6 +46,8 @@ var minReplicas = scale && contains(options.scale, 'minReplicas') ? options.scal
 var maxReplicas = scale && contains(options.scale, 'maxReplicas') ? options.scale.maxReplicas : 10
 var rules = scale && contains(options.scale, 'rules') ? options.scale.rules : []
 
+var image = contains(options, 'image') ? options.image : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+
 // ---------------------------------------------------------------------------
 
 var uid = uniqueString(resourceGroup().id, projectName, environment, location)
@@ -102,7 +104,7 @@ resource container 'Microsoft.App/containerApps@2022-03-01' = {
             // }
           ]
           // image: '${containerRegistry.properties.loginServer}/${name}'
-          image: 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+          image: image
           name: name
           resources: {
             cpu: json(cpu)  // float values aren't currently supported

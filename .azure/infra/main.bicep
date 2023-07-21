@@ -49,15 +49,49 @@ module registry './modules/registry.bicep' = {
   }
 }
 
-module database './modules/database.bicep' = {
-  name: 'database'
+// module database './modules/database.bicep' = {
+//   name: 'database'
+//   scope: resourceGroup()
+//   params: {
+//     projectName: projectName
+//     environment: environment
+//     location: location
+//     tags: commonTags
+//     options: contains(config, 'database') ? config.database : {}
+//   }
+// }
+
+module openAi './modules/openai.bicep' = {
+  name: 'openai'
   scope: resourceGroup()
   params: {
     projectName: projectName
     environment: environment
     location: location
     tags: commonTags
-    options: contains(config, 'database') ? config.database : {}
+    options: contains(config, 'options') ? config.options : {}
+  }
+}
+
+module contentSafety './modules/content-safety.bicep' = {
+  name: 'content-safety'
+  scope: resourceGroup()
+  params: {
+    projectName: projectName
+    environment: environment
+    location: location
+    tags: commonTags
+  }
+}
+
+module redis './modules/redis.bicep' = {
+  name: 'redis'
+  scope: resourceGroup()
+  params: {
+    projectName: projectName
+    environment: environment
+    location: location
+    tags: commonTags
   }
 }
 
@@ -114,7 +148,17 @@ output logsWorkspaceCustomerId string = logs.outputs.logsWorkspaceCustomerId
 output registryName string = registry.outputs.registryName
 output registryServer string = registry.outputs.registryServer
 
-output databaseName string = database.outputs.databaseName
+// output databaseName string = database.outputs.databaseName
+
+output openAiName string = openAi.outputs.openAiName
+output openAiEndpoint string = openAi.outputs.openAiEndpoint
+output openAiModelNames array = openAi.outputs.openAiModelNames
+
+output contentSafetyName string = contentSafety.outputs.contentSafetyName
+output contentSafetyEndpoint string = contentSafety.outputs.contentSafetyEndpoint
+
+output redisName string = redis.outputs.redisName
+output redisHostName string = redis.outputs.redisHostName
 
 output containerAppEnvironmentName string = containerEnvironment.outputs.containerEnvironmentName
 

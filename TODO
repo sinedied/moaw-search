@@ -1,0 +1,21 @@
+- cognitive services
+- oai
+- bypass redis?
+- qdrant
+- 2 app containers
+
+- [x] search-ui: swa deployment
+- [ ] search-api: aca deployment
+- [x] bicep
+  - [x] OAI
+  - [x] Cognitive Services
+  - [x] Redis
+
+# Step 1
+- Deploy as-is
+
+# Step 2
+- Replace qdrant by ACS Vector Search
+
+# Step 3
+- Replace Redis by Azure Cache for Redis

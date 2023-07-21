@@ -6,7 +6,7 @@
       "outputLocation": "dist",
       "run": "npm run dev",
       "appBuildCommand": "npm run build",
-      "appDevserverUrl": "http://localhost:5173"
+      "appDevserverUrl": "http://localhost:8080"
     }
   }
 }

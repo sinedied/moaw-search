@@ -9,4 +9,4 @@ npm ci
 npm run docker:build --if-present --workspaces
 
 # Build the website
-npm run build --workspace=website
+npm run build --workspace=search-ui

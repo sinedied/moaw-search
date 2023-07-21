@@ -61,10 +61,10 @@ echo "$REGISTRY_PASSWORD" | docker login \
 #   --query "properties.configuration.ingress.fqdn" \
 #   --output tsv
 
-# echo "Deploying website..."
-# cd packages/website
-# npx swa deploy \
-#   --app-name "${STATIC_WEB_APP_NAMES[0]}" \
-#   --deployment-token "${STATIC_WEB_APP_DEPLOYMENT_TOKENS[0]}" \
-#   --env "production" \
-#   --verbose
+echo "Deploying website..."
+cd packages/search-ui
+npx swa deploy \
+  --app-name "${STATIC_WEB_APP_NAMES[0]}" \
+  --deployment-token "${STATIC_WEB_APP_DEPLOYMENT_TOKENS[0]}" \
+  --env "production" \
+  --verbose

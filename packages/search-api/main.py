@@ -71,6 +71,7 @@ logger.setLevel(LOGGING_APP_LEVEL)
 # Init OpenAI
 ###
 
+
 async def refresh_oai_token():
     """
     Refresh OpenAI token every 25 minutes.
@@ -85,7 +86,7 @@ async def refresh_oai_token():
         oai_token = oai_cred.get_token("https://cognitiveservices.azure.com/.default")
         openai.api_key = oai_token.token
         # Execute every 25 minutes
-        await asyncio.sleep(25*60)
+        await asyncio.sleep(25 * 60)
 
 
 OAI_EMBEDDING_ARGS = {

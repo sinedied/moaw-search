@@ -1,0 +1,16 @@
+{
+  "name": "search-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "",
+  "scripts": {
+    "postinstall": "python3 -m pip install -r requirements.txt",
+    "start": "python3 -m uvicorn main:api --no-server-header --port 8081 --proxy-headers --reload",
+    "docker:build": "docker build --tag search-api .",
+    "docker:run": "docker run --rm --publish 8081:8081 search-api",
+    "test": "npm run format:check -s && npm run lint -s",
+    "format": "python3 -m black .",
+    "format:check": "python3 -m black --check .",
+    "lint": "find . -name \"Dockerfile*\" -exec bash -c \"echo 'File {}:' && hadolint {}\" \\;"
+  }
+}

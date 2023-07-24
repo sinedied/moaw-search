@@ -69,7 +69,7 @@ module openAi './modules/openai.bicep' = {
     environment: environment
     location: location
     tags: commonTags
-    options: contains(config, 'options') ? config.options : {}
+    options: contains(config, 'openai') ? config.openai : {}
   }
 }
 

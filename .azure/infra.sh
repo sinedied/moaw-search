@@ -206,6 +206,42 @@ retrieveSecrets() {
     echo "STORAGE_ACCOUNT_CONNECTION_STRING='$storage_account_connection_string'" >> "$env_file"
   fi
 
+  # Get cognitive services content safety api token
+  if [[ -n "${CONTENT_SAFETY_NAME:-}" ]]; then
+    content_safety_api_token=$( \
+      az cognitiveservices account keys list \
+        --name "$CONTENT_SAFETY_NAME" \
+        --resource-group "$resource_group_name" \
+        --query "key1" \
+        --output tsv \
+      )
+    echo "CONTENT_SAFETY_API_TOKEN='$content_safety_api_token'" >> "$env_file"
+  fi
+
+  # Get cognitive services openai api token
+  if [[ -n "${OPENAI_NAME:-}" ]]; then
+    openai_api_token=$( \
+      az cognitiveservices account keys list \
+        --name "$OPENAI_NAME" \
+        --resource-group "$resource_group_name" \
+        --query "key1" \
+        --output tsv \
+      )
+    echo "OPENAI_API_TOKEN='$openai_api_token'" >> "$env_file"
+  fi
+
+  # Get redis key
+  if [[ -n "${REDIS_NAME:-}" ]]; then
+    redis_key=$( \
+      az redis list-keys \
+        --name "$REDIS_NAME" \
+        --resource-group "$resource_group_name" \
+        --query "primaryKey" \
+        --output tsv \
+      )
+    echo "REDIS_KEY='$redis_key'" >> "$env_file"
+  fi
+
   echo "Secrets for environment '$environment' saved to '$env_file'."
 }
 

@@ -61,7 +61,7 @@ module registry './modules/registry.bicep' = {
 //   }
 // }
 
-module openAi './modules/openai.bicep' = {
+module openai './modules/openai.bicep' = {
   name: 'openai'
   scope: resourceGroup()
   params: {
@@ -150,15 +150,15 @@ output registryServer string = registry.outputs.registryServer
 
 // output databaseName string = database.outputs.databaseName
 
-output openAiName string = openAi.outputs.openAiName
-output openAiEndpoint string = openAi.outputs.openAiEndpoint
-output openAiModelNames array = openAi.outputs.openAiModelNames
+output openaiName string = openai.outputs.openaiName
+output openaiEndpoint string = openai.outputs.openaiEndpoint
+output openaiModelNames array = openai.outputs.openaiModelNames
 
 output contentSafetyName string = contentSafety.outputs.contentSafetyName
 output contentSafetyEndpoint string = contentSafety.outputs.contentSafetyEndpoint
 
 output redisName string = redis.outputs.redisName
-output redisHostName string = redis.outputs.redisHostName
+output redisHostname string = redis.outputs.redisHostname
 
 output containerAppEnvironmentName string = containerEnvironment.outputs.containerEnvironmentName
 

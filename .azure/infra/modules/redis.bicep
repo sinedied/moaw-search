@@ -43,4 +43,4 @@ resource redis 'Microsoft.Cache/redis@2023-04-01' = {
 // ---------------------------------------------------------------------------
 
 output redisName string = redis.name
-output redisHostName string = redis.properties.hostName
+output redisHostname string = redis.properties.hostName

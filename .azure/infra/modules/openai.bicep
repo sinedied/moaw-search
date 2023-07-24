@@ -34,7 +34,7 @@ var modelsNames = map(modelsConfig, c => c.name)
 // Azure Cognitive Services OpenAI 
 // https://docs.microsoft.com/azure/templates/microsoft.cognitiveservices/accounts?tabs=bicep
 
-resource openAi 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
+resource openai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   name: 'oai-${projectName}-${environment}-${uid}'
   location: location
   tags: tags
@@ -49,7 +49,7 @@ resource openAi 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
 }
 
 resource models 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = [for model in modelsConfig: {
-  parent: openAi
+  parent: openai
   name: model.name
   sku: {
     name: 'Standard'
@@ -70,6 +70,6 @@ resource models 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = 
 // Outputs
 // ---------------------------------------------------------------------------
 
-output openAiName string = openAi.name
-output openAiEndpoint string = openAi.properties.endpoint
-output openAiModelNames array = modelsNames
+output openaiName string = openai.name
+output openaiEndpoint string = openai.properties.endpoint
+output openaiModelNames array = modelsNames

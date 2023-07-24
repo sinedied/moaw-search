@@ -71,24 +71,6 @@ logger.setLevel(LOGGING_APP_LEVEL)
 # Init OpenAI
 ###
 
-
-async def refresh_oai_token():
-    """
-    Refresh OpenAI token every 25 minutes.
-
-    The OpenAI SDK does not support token refresh, so we need to do it manually. We passe manually the token to the SDK. Azure AD tokens are valid for 30 mins, but we refresh every 25 minutes to be safe.
-
-    See: https://github.com/openai/openai-python/pull/350#issuecomment-1489813285
-    """
-    while True:
-        logger.info("(OpenAI) Refreshing token")
-        oai_cred = DefaultAzureCredential()
-        oai_token = oai_cred.get_token("https://cognitiveservices.azure.com/.default")
-        openai.api_key = oai_token.token
-        # Execute every 25 minutes
-        await asyncio.sleep(25 * 60)
-
-
 OAI_EMBEDDING_ARGS = {
     "deployment_id": os.environ.get("MS_OAI_ADA_DEPLOY_ID"),
     "model": "text-embedding-ada-002",
@@ -98,10 +80,11 @@ OAI_COMPLETION_ARGS = {
     "model": "gpt-3.5-turbo",
 }
 
-logger.info(f"(OpenAI) Using Aure private service ({openai.api_base})")
-openai.api_type = "azure_ad"
+logger.info(f"(OpenAI) Using Azure private service ({openai.api_base})")
+openai.api_type = "azure"
+openai.api_base = os.getenv("OPENAI_API_BASE")
+openai.api_key = os.getenv("OPENAI_API_TOKEN")
 openai.api_version = "2023-05-15"
-asyncio.create_task(refresh_oai_token())
 
 ###
 # Init Azure Content Safety

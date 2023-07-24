@@ -13,7 +13,7 @@ import useLocalStorageState from "use-local-storage-state";
 
 function App() {
   // Constants
-  const API_BASE_URL = "http://127.0.0.1:8081";
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8081";
   // State
   const [answers, setAnswers] = useState(null);
   const [answersLoading, setAnswersLoading] = useState(false);

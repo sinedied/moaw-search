@@ -6,7 +6,7 @@
   "scripts": {
     "postinstall": "python3 -m pip install -r requirements.txt",
     "start": "python3 -m uvicorn main:api --no-server-header --port 8081 --proxy-headers --reload",
-    "docker:build": "docker build --tag search-api .",
+    "docker:build": "docker build --tag search-api --build-arg=\"VERSION=${VERSION:-dev}\" .",
     "docker:run": "docker run --rm --publish 8081:8081 search-api",
     "test": "npm run format:check -s && npm run lint -s",
     "format": "python3 -m black .",

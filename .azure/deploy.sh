@@ -25,8 +25,8 @@ az containerapp update \
   --resource-group "$RESOURCE_GROUP_NAME" \
   --image "$REGISTRY_SERVER/search-api:$commit_sha" \
   --set-env-vars \
-    MS_LOGGING_APP_LEVEL="$DEBUG" \
-    MS_LOGGING_SYS_LEVEL="$WARN" \
+    MS_LOGGING_APP_LEVEL="DEBUG" \
+    MS_LOGGING_SYS_LEVEL="WARN" \
     MS_ROOT_PATH="" \
     MS_QD_HOST="${CONTAINER_APP_HOSTNAMES[1]}" \
     MS_QD_PORT="80" \
@@ -41,10 +41,10 @@ az containerapp update \
   --query "properties.configuration.ingress.fqdn" \
   --output tsv
 
-# echo "Deploying website..."
-# cd packages/search-ui
-# npx swa deploy \
-#   --app-name "${STATIC_WEB_APP_NAMES[0]}" \
-#   --deployment-token "${STATIC_WEB_APP_DEPLOYMENT_TOKENS[0]}" \
-#   --env "production" \
-#   --verbose
+echo "Deploying website..."
+cd packages/search-ui
+npx swa deploy \
+  --app-name "${STATIC_WEB_APP_NAMES[0]}" \
+  --deployment-token "${STATIC_WEB_APP_DEPLOYMENT_TOKENS[0]}" \
+  --env "production" \
+  --verbose

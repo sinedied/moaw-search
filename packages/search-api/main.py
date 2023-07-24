@@ -54,7 +54,7 @@ import time
 # Init misc
 ###
 
-VERSION = os.environ.get("VERSION")
+VERSION = os.environ.get("VERSION", "dev")
 
 ###
 # Init logging
@@ -137,7 +137,9 @@ QD_COLLECTION = "moaw"
 QD_DIMENSION = 1536
 QD_METRIC = qmodels.Distance.DOT
 QD_HOST = os.environ.get("MS_QD_HOST")
-qd_client = QdrantClient(host=QD_HOST, port=6333)
+QD_PORT = os.environ.get("MS_QD_PORT", 6333)
+QD_USE_HTTPS = True if os.environ.get("MS_QD_USE_HTTPS", "false").lower() == "true" else None
+qd_client = QdrantClient(host=QD_HOST, port=QD_PORT, https=QD_USE_HTTPS, verify=False)
 
 # Ensure collection exists
 try:
@@ -158,15 +160,16 @@ except Exception:
 GLOBAL_CACHE_TTL_SECS = 60 * 60  # 1 hour
 SUGGESTION_TOKEN_TTL_SECS = 60 * 10  # 10 minutes
 REDIS_HOST = os.environ.get("MS_REDIS_HOST")
-REDIS_PORT = 6379
+REDIS_PORT = 6380
 REDIS_STREAM_STOPWORD = "STOP"
-redis_client_api = Redis(db=0, host=REDIS_HOST, port=REDIS_PORT)
+REDIS_PASSWORD = os.environ.get("REDIS_KEY")
+redis_client_api = Redis(db=0, host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, ssl=True)
 
 ###
 # Init scheduler
 ###
 
-scheduler_client = RedisJobStore(db=1, host=REDIS_HOST, port=REDIS_PORT)
+scheduler_client = RedisJobStore(db=1, host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, ssl=True)
 
 
 @api.on_event("startup")

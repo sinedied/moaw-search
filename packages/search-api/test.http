@@ -1,0 +1,24 @@
+##################################################################
+# VS Code with REST Client extension is needed to use this file.
+# Download at: https://aka.ms/vscode/rest-client
+##################################################################
+
+@search_api_host = http://localhost:8081
+@user = {{$guid}}
+
+
+# Get search results
+# @name search 
+GET {{search_api_host}}/search?query=javascript&limit=10&user={{user}}
+
+###
+
+@token = {{search.response.body.suggestion_token}}
+
+# Get AI suggestion from a search
+GET {{search_api_host}}/suggestion/{{token}}?user={{user}}
+
+###
+
+# Index workshops (background task)
+GET {{search_api_host}}/index?force=false&user={{user}}

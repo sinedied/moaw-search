@@ -16,55 +16,35 @@ echo "$REGISTRY_PASSWORD" | docker login \
   --password-stdin \
   "$REGISTRY_NAME.azurecr.io"
 
-# echo "Deploying settings-api..."
-# docker image tag settings-api "$REGISTRY_NAME.azurecr.io/settings-api:$commit_sha"
-# docker image push "$REGISTRY_SERVER/settings-api:$commit_sha"
+# echo "Deploying search-api..."
+docker image tag search-api "$REGISTRY_NAME.azurecr.io/search-api:$commit_sha"
+docker image push "$REGISTRY_SERVER/search-api:$commit_sha"
 
-# az containerapp update \
-#   --name "${CONTAINER_APP_NAMES[0]}" \
-#   --resource-group "$RESOURCE_GROUP_NAME" \
-#   --image "$REGISTRY_SERVER/settings-api:$commit_sha" \
-#   --set-env-vars \
-#     DATABASE_CONNECTION_STRING="$DATABASE_CONNECTION_STRING" \
-#   --query "properties.configuration.ingress.fqdn" \
-#   --output tsv
+az containerapp update \
+  --name "${CONTAINER_APP_NAMES[0]}" \
+  --resource-group "$RESOURCE_GROUP_NAME" \
+  --image "$REGISTRY_SERVER/search-api:$commit_sha" \
+  --set-env-vars \
+    MS_LOGGING_APP_LEVEL="$DEBUG" \
+    MS_LOGGING_SYS_LEVEL="$WARN" \
+    MS_ROOT_PATH="" \
+    MS_QD_HOST="${CONTAINER_APP_HOSTNAMES[1]}" \
+    MS_QD_PORT="80" \
+    MS_REDIS_HOST="${REDIS_HOSTNAME}" \
+    MS_ACS_API_BASE="${CONTENT_SAFETY_ENDPOINT}" \
+    MS_ACS_API_TOKEN="${CONTENT_SAFETY_API_KEY}" \
+    MS_OAI_ADA_DEPLOY_ID="${OPENAI_MODEL_NAMES[0]}" \
+    MS_OAI_GPT_DEPLOY_ID="${OPENAI_MODEL_NAMES[1]}" \
+    OPENAI_API_BASE="${OPENAI_ENDPOINT}" \
+    OPENAI_API_TOKEN="${OPENAI_API_KEY}" \
+    REDIS_KEY="${REDIS_KEY}" \
+  --query "properties.configuration.ingress.fqdn" \
+  --output tsv
 
-# echo "Deploying dice-api..."
-# docker image tag dice-api "$REGISTRY_NAME.azurecr.io/dice-api:$commit_sha"
-# docker image push "$REGISTRY_SERVER/dice-api:$commit_sha"
-
-# az containerapp update \
-#   --name "${CONTAINER_APP_NAMES[1]}" \
-#   --resource-group "$RESOURCE_GROUP_NAME" \
-#   --image "$REGISTRY_SERVER/dice-api:$commit_sha" \
-#   --set-env-vars \
-#     DATABASE_CONNECTION_STRING="$DATABASE_CONNECTION_STRING" \
-#   --scale-rule-name http-rule \
-#   --scale-rule-type http \
-#   --scale-rule-http-concurrency 100 \
-#   --query "properties.configuration.ingress.fqdn" \
-#   --output tsv
-
-# echo "Deploying gateway-api..."
-# docker image tag gateway-api "$REGISTRY_NAME.azurecr.io/gateway-api:$commit_sha"
-# docker image push "$REGISTRY_SERVER/gateway-api:$commit_sha"
-
-# az containerapp update \
-#   --name "${CONTAINER_APP_NAMES[2]}" \
-#   --resource-group "$RESOURCE_GROUP_NAME" \
-#   --image "$REGISTRY_SERVER/gateway-api:$commit_sha" \
-#   --set-env-vars \
-#     SETTINGS_API_URL="https://${CONTAINER_APP_HOSTNAMES[0]}" \
-#     DICE_API_URL="https://${CONTAINER_APP_HOSTNAMES[1]}" \
-#   --cpu 2 \
-#   --memory 4 \
-#   --query "properties.configuration.ingress.fqdn" \
-#   --output tsv
-
-echo "Deploying website..."
-cd packages/search-ui
-npx swa deploy \
-  --app-name "${STATIC_WEB_APP_NAMES[0]}" \
-  --deployment-token "${STATIC_WEB_APP_DEPLOYMENT_TOKENS[0]}" \
-  --env "production" \
-  --verbose
+# echo "Deploying website..."
+# cd packages/search-ui
+# npx swa deploy \
+#   --app-name "${STATIC_WEB_APP_NAMES[0]}" \
+#   --deployment-token "${STATIC_WEB_APP_DEPLOYMENT_TOKENS[0]}" \
+#   --env "production" \
+#   --verbose

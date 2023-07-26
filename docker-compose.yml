@@ -1,0 +1,28 @@
+version: "3.9"
+services:
+  search-api:
+    build: ./packages/search-api
+    ports:
+      - "8081:8080"
+    environment:
+      - VERSION=dev
+      - LOGGING_APP_LEVEL=DEBUG
+      - LOGGING_SYS_LEVEL=WARN
+      - QD_HOST=qdrant
+      - QD_PORT=6333
+      - ACS_API_URL=${ACS_API_URL}
+      - ACS_API_TOKEN=${ACS_API_TOKEN}
+      - OPENAI_API_URL=${OPENAI_API_URL}
+      - OPENAI_API_TOKEN=${OPENAI_API_TOKEN}
+      - OPENAI_ADA_DEPLOY_ID=${OPENAI_ADA_DEPLOY_ID}
+      - OPENAI_GPT_DEPLOY_ID=${OPENAI_GPT_DEPLOY_ID}
+
+  qdrant:
+    image: docker.io/qdrant/qdrant:v1.2.0
+    ports:
+      - 6333:6333
+    volumes:
+      - qdrant-data:/qdrant/storage
+
+volumes:
+  qdrant-data: {}

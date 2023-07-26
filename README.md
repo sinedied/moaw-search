@@ -33,6 +33,8 @@ ACS_API_TOKEN=[api_token]
 # OpenAI
 OPENAI_API_URL=https://[resource_name].openai.azure.com
 OPENAI_API_TOKEN=[api_token]
+OPENAI_ADA_DEPLOY_ID=[deployment_id]
+OPENAI_GPT_DEPLOY_ID=[deployment_id]
 ```
 
 You can see the full list of supported variables in the [`.example.env.`](./.example.env) file.

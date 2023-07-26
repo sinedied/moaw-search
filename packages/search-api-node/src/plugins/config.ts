@@ -1,4 +1,5 @@
 import process from 'node:process';
+import path from 'node:path';
 import * as dotenv from 'dotenv';
 import fp from 'fastify-plugin'
 
@@ -18,7 +19,9 @@ export interface AppConfig {
 // The use of fastify-plugin is required to be able
 // to export the decorators to the outer scope
 export default fp(async (fastify, opts) => {
-  dotenv.config();
+  dotenv.config({ path: path.resolve(process.cwd(), '../../.env') });
+
+  console.log(path.resolve(process.cwd(), '../../.env'));
 
   const config: AppConfig = {
     qdHost: process.env.QD_HOST || 'localhost',

@@ -82,7 +82,7 @@ OAI_COMPLETION_ARGS = {
 
 openai.api_type = "azure"
 openai.api_base = os.getenv("OPENAI_API_URL")
-openai.api_key = os.getenv("OPENAI_API_TOKEN")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.api_version = "2023-05-15"
 logger.info(f"(OpenAI) Using Azure private service ({openai.api_base})")
 
@@ -94,10 +94,10 @@ logger.info(f"(OpenAI) Using Azure private service ({openai.api_base})")
 # See: https://review.learn.microsoft.com/en-us/azure/cognitive-services/content-safety/concepts/harm-categories?branch=release-build-content-safety#severity-levels
 ACS_SEVERITY_THRESHOLD = 2
 ACS_API_BASE = os.environ.get("ACS_API_URL")
-ACS_API_TOKEN = os.environ.get("ACS_API_TOKEN")
-logger.info(f"(Azure Content Safety) Using Aure private service ({ACS_API_BASE})")
+ACS_API_KEY = os.environ.get("ACS_API_KEY")
+logger.info(f"(Azure Content Safety) Using Azure private service ({ACS_API_BASE})")
 acs_client = azure_cs.ContentSafetyClient(
-    ACS_API_BASE, AzureKeyCredential(ACS_API_TOKEN)
+    ACS_API_BASE, AzureKeyCredential(ACS_API_KEY)
 )
 
 ###
@@ -138,8 +138,8 @@ QD_DIMENSION = 1536
 QD_METRIC = qmodels.Distance.DOT
 QD_HOST = os.environ.get("QD_HOST")
 QD_PORT = os.environ.get("QD_PORT", 6333)
-QD_USE_HTTPS = True if os.environ.get("MS_QD_USE_HTTPS", "false").lower() == "true" else None
-qd_client = QdrantClient(host=QD_HOST, port=QD_PORT, https=QD_USE_HTTPS, verify=False)
+QD_USE_HTTPS = True if os.environ.get("QD_USE_HTTPS", "false").lower() == "true" else None
+qd_client = QdrantClient(host=QD_HOST, port=QD_PORT, https=QD_USE_HTTPS)
 logger.info(f"Using Qdrant host: {QD_HOST}:{QD_PORT}")
 
 # Ensure collection exists

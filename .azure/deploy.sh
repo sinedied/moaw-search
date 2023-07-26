@@ -32,11 +32,11 @@ az containerapp update \
     QD_PORT="80" \
     REDIS_HOST="${REDIS_HOSTNAME}" \
     ACS_API_URL="${CONTENT_SAFETY_ENDPOINT}" \
-    ACS_API_TOKEN="${CONTENT_SAFETY_API_KEY}" \
+    ACS_API_KEY="${CONTENT_SAFETY_API_KEY}" \
     OPENAI_ADA_DEPLOY_ID="${OPENAI_MODEL_NAMES[0]}" \
     OPENAI_GPT_DEPLOY_ID="${OPENAI_MODEL_NAMES[1]}" \
     OPENAI_API_URL="${OPENAI_ENDPOINT}" \
-    OPENAI_API_TOKEN="${OPENAI_API_KEY}" \
+    OPENAI_API_KEY="${OPENAI_API_KEY}" \
     REDIS_KEY="${REDIS_KEY}" \
   --query "properties.configuration.ingress.fqdn" \
   --output tsv

@@ -541,14 +541,17 @@ async def index_engine(user: UUID, force: bool = False) -> None:
                     logger.exception("Error searching for workshops", exc_info=True)
 
             logger.info(f"Parsing workshop {metadata.title}...")
-            text = await embedding_text_from_metadata(metadata, session)
-            logger.debug(f"Text: {text}")
-            vector = await vector_from_text(text, user)
+            try:
+                text = await embedding_text_from_metadata(metadata, session)
+                logger.debug(f"Text: {text}")
+                vector = await vector_from_text(text, user)
 
-            # Create Qdrant payload
-            vectors.append(vector)
-            ids.append(identifier)
-            payloads.append(metadata.dict())
+                # Create Qdrant payload
+                vectors.append(vector)
+                ids.append(identifier)
+                payloads.append(metadata.dict())
+            except:
+                logger.warn(f"Error parsing workshop {metadata.title}", exc_info=True)
 
         if len(ids) == 0:
             logger.info("No new workshops to index")

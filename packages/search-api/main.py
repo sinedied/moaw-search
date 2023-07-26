@@ -72,19 +72,19 @@ logger.setLevel(LOGGING_APP_LEVEL)
 ###
 
 OAI_EMBEDDING_ARGS = {
-    "deployment_id": os.environ.get("OPENAI_ADA_DEPLOY_ID"),
+    "deployment_id": os.environ.get("OPENAI_ADA_DEPLOY_ID", "text-embedding-ada-002"),
     "model": "text-embedding-ada-002",
 }
 OAI_COMPLETION_ARGS = {
-    "deployment_id": os.environ.get("OPENAI_GPT_DEPLOY_ID"),
+    "deployment_id": os.environ.get("OPENAI_GPT_DEPLOY_ID", "gpt-3.5-turbo"),
     "model": "gpt-3.5-turbo",
 }
 
-logger.info(f"(OpenAI) Using Azure private service ({openai.api_base})")
 openai.api_type = "azure"
 openai.api_base = os.getenv("OPENAI_API_URL")
 openai.api_key = os.getenv("OPENAI_API_TOKEN")
 openai.api_version = "2023-05-15"
+logger.info(f"(OpenAI) Using Azure private service ({openai.api_base})")
 
 ###
 # Init Azure Content Safety
@@ -140,6 +140,7 @@ QD_HOST = os.environ.get("QD_HOST")
 QD_PORT = os.environ.get("QD_PORT", 6333)
 QD_USE_HTTPS = True if os.environ.get("MS_QD_USE_HTTPS", "false").lower() == "true" else None
 qd_client = QdrantClient(host=QD_HOST, port=QD_PORT, https=QD_USE_HTTPS, verify=False)
+logger.info(f"Using Qdrant host: {QD_HOST}:{QD_PORT}")
 
 # Ensure collection exists
 try:

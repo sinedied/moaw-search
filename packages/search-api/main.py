@@ -48,7 +48,7 @@ import qdrant_client.http.models as qmodels
 import re
 import textwrap
 import time
-
+import functools
 
 ###
 # Init misc
@@ -160,36 +160,53 @@ except Exception:
 GLOBAL_CACHE_TTL_SECS = 60 * 60  # 1 hour
 SUGGESTION_TOKEN_TTL_SECS = 60 * 10  # 10 minutes
 REDIS_HOST = os.environ.get("MS_REDIS_HOST")
-REDIS_PORT = 6380
 REDIS_STREAM_STOPWORD = "STOP"
-REDIS_PASSWORD = os.environ.get("REDIS_KEY")
-redis_client_api = Redis(db=0, host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, ssl=True)
 
-###
-# Init scheduler
-###
+if REDIS_HOST:
+    logger.info(f"Using Redis host: {REDIS_HOST}")
+    REDIS_PORT = 6380
+    REDIS_PASSWORD = os.environ.get("REDIS_KEY")
+    redis_client_api = Redis(db=0, host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, ssl=True)
 
-scheduler_client = RedisJobStore(db=1, host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, ssl=True)
+    ###
+    # Init scheduler
+    ###
 
+    scheduler_client = RedisJobStore(db=1, host=REDIS_HOST, port=REDIS_PORT, password=REDIS_PASSWORD, ssl=True)
+else:
+    logger.info("No Redis host provided, using in-memory cache")
+    cache = {}
+    cache_expire = {}
 
 @api.on_event("startup")
 async def startup_event() -> None:
     """
     Starts the scheduler, which runs every hour to index the data in the database.
     """
-    scheduler = AsyncIOScheduler(
-        jobstores={"redis": scheduler_client},
-        timezone="UTC",
-    )
-    scheduler.add_job(
-        args={"user": uuid4()},
-        func=index_engine,
-        id="index",
-        jobstore="redis",
-        replace_existing=True,
-        trigger=CronTrigger(hour="*"),  # Every hour
-    )
-    scheduler.start()
+    if REDIS_HOST:
+        scheduler = AsyncIOScheduler(
+            jobstores={"redis": scheduler_client},
+            timezone="UTC",
+        )
+        scheduler.add_job(
+            args={"user": uuid4()},
+            func=index_engine,
+            id="index",
+            jobstore="redis",
+            replace_existing=True,
+            trigger=CronTrigger(hour="*"),  # Every hour
+        )
+        scheduler.start()
+    else:
+        scheduler = AsyncIOScheduler(timezone="UTC")
+        scheduler.add_job(
+            args={"user": uuid4()},
+            func=index_engine,
+            id="index",
+            replace_existing=True,
+            trigger=CronTrigger(hour="*"),  # Every hour
+        )
+        scheduler.start()
 
 
 @api.get(
@@ -206,35 +223,36 @@ async def health_liveness_get() -> None:
     name="Healthckeck readiness",
 )
 async def health_readiness_get() -> ReadinessModel:
-    # Test the scheduler cache with a transaction (insert, read, delete)
-    cache_scheduler_check = ReadinessStatus.FAIL
-    try:
-        key = str(uuid4())
-        value = "test"
-        scheduler_client.redis.set(key, value)
-        assert value == scheduler_client.redis.get(key).decode("utf-8")
-        scheduler_client.redis.delete(key)
-        assert None == scheduler_client.redis.get(key)
-        cache_scheduler_check = ReadinessStatus.OK
-    except Exception:
-        logger.exception(
-            "Error connecting to the scheduler cache database", exc_info=True
-        )
+    if REDIS_HOST:
+        # Test the scheduler cache with a transaction (insert, read, delete)
+        cache_scheduler_check = ReadinessStatus.FAIL
+        try:
+            key = str(uuid4())
+            value = "test"
+            scheduler_client.redis.set(key, value)
+            assert value == scheduler_client.redis.get(key).decode("utf-8")
+            scheduler_client.redis.delete(key)
+            assert None == scheduler_client.redis.get(key)
+            cache_scheduler_check = ReadinessStatus.OK
+        except Exception:
+            logger.exception(
+                "Error connecting to the scheduler cache database", exc_info=True
+            )
 
-    # Test the database cache with a transaction (insert, read, delete)
-    cache_database_check = ReadinessStatus.FAIL
-    try:
-        key = str(uuid4())
-        value = "test"
-        redis_client_api.set(key, value)
-        assert value == redis_client_api.get(key).decode("utf-8")
-        redis_client_api.delete(key)
-        assert None == redis_client_api.get(key)
-        cache_database_check = ReadinessStatus.OK
-    except Exception:
-        logger.exception(
-            "Error connecting to the database cache database", exc_info=True
-        )
+        # Test the database cache with a transaction (insert, read, delete)
+        cache_database_check = ReadinessStatus.FAIL
+        try:
+            key = str(uuid4())
+            value = "test"
+            redis_client_api.set(key, value)
+            assert value == redis_client_api.get(key).decode("utf-8")
+            redis_client_api.delete(key)
+            assert None == redis_client_api.get(key)
+            cache_database_check = ReadinessStatus.OK
+        except Exception:
+            logger.exception(
+                "Error connecting to the database cache database", exc_info=True
+            )
 
     # Test database with a transaction (insert, read, delete)
     database_check = ReadinessStatus.FAIL
@@ -321,12 +339,12 @@ async def search_answer(query: str, limit: int, user: UUID) -> List[any]:
 async def suggestion(token: str, user: UUID, req: Request) -> EventSourceResponse:
     token_key = await token_cache_key(str(token))
 
-    search_raw = redis_client_api.get(token_key)
+    search_raw = get_cache(token_key)
     if not search_raw:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Suggestion not found or expired",
-        )
+            )
 
     search = SearchModel.parse_raw(search_raw)
     return EventSourceResponse(suggestion_sse_generator(req, search, user))
@@ -344,8 +362,8 @@ async def suggestion_sse_generator(req: Request, search: SearchModel, user: UUID
     suggestion_key_static = await suggestion_cache_key(search.query)
 
     # Test if the cache key exists
-    if redis_client_api.exists(suggestion_key_static):
-        message = redis_client_api.get(suggestion_key_static).decode("utf-8")
+    if exists_cache(suggestion_key_static):
+        message = get_cache(suggestion_key_static).decode("utf-8")
         logger.debug(f"Cache key {suggestion_key_static} exists")
         yield message
         return
@@ -362,9 +380,10 @@ async def suggestion_sse_generator(req: Request, search: SearchModel, user: UUID
         # Cancelling suggestion generation
         logger.debug("Cancelling suggestion generation")
         completion.cancel()
+
         # Delete the temporary cache key
         logger.debug("Deleting temporary cache key")
-        redis_client_api.delete(suggestion_key_req)
+        delete_cache(suggestion_key_req)
 
     try:
         is_end = False
@@ -379,9 +398,7 @@ async def suggestion_sse_generator(req: Request, search: SearchModel, user: UUID
                 break
 
             # Read the redis stream with key cache_key
-            messages_raw = redis_client_api.xread(
-                streams={suggestion_key_req: message_id}
-            )
+            messages_raw = xread_cache(suggestion_key_req, message_id)
             message_loop = ""
 
             if messages_raw:
@@ -412,10 +429,10 @@ async def suggestion_sse_generator(req: Request, search: SearchModel, user: UUID
 
     # Delete the temporary cache key
     logger.debug(f"Deleting temporary cache key {suggestion_key_req}")
-    redis_client_api.delete(suggestion_key_req)
+    delete_cache(suggestion_key_req)
     # Store the full message in the cache
     logger.debug(f"Storing full message in cache key {suggestion_key_static}")
-    redis_client_api.set(suggestion_key_static, message_full, ex=GLOBAL_CACHE_TTL_SECS)
+    set_cache(suggestion_key_static, message_full, ex=GLOBAL_CACHE_TTL_SECS)
 
 
 @api.get(
@@ -431,8 +448,8 @@ async def search(
     logger.info(f"Searching for text: {query}")
 
     search_cache_key = f"search:{query}-{limit}"
+    suggestion_cached = get_cache(search_cache_key)
 
-    suggestion_cached = redis_client_api.get(search_cache_key)
     if suggestion_cached:
         search = SearchModel.parse_raw(suggestion_cached)
         answers = search.answers
@@ -469,8 +486,8 @@ async def search(
     )
     token_key = await token_cache_key(search.suggestion_token)
 
-    redis_client_api.set(search_cache_key, search.json(), ex=GLOBAL_CACHE_TTL_SECS)
-    redis_client_api.set(token_key, search.json(), ex=SUGGESTION_TOKEN_TTL_SECS)
+    set_cache(search_cache_key, search.json(), GLOBAL_CACHE_TTL_SECS)
+    set_cache(token_key, search.json(), SUGGESTION_TOKEN_TTL_SECS)
 
     return search
 
@@ -594,10 +611,10 @@ def completion_from_text(search: SearchModel, cache_key: str, user: UUID) -> Non
         if content is not None:
             logger.debug(f"Completion result: {content}")
             # add content to the redis stream cache_key
-            redis_client_api.xadd(cache_key, {"message": content})
+            xadd_cache(cache_key, {"message": content})
 
     logger.debug(f"Completion result: {REDIS_STREAM_STOPWORD}")
-    redis_client_api.xadd(cache_key, {"message": REDIS_STREAM_STOPWORD})
+    xadd_cache(cache_key, {"message": REDIS_STREAM_STOPWORD})
 
 
 @retry(stop=stop_after_attempt(3))
@@ -819,3 +836,58 @@ async def token_cache_key(str: str) -> str:
     Returns the key to use to cache the token for the given string.
     """
     return f"token:{str}"
+
+def delete_expired_cache():
+    for key in cache_expire.keys():
+        if cache_expire[key] < time.monotonic():
+            delete_cache(key)
+
+def get_cache(key: str):
+    if REDIS_HOST:
+        return redis_client_api.get(key)
+    else:
+        delete_expired_cache()
+        return cache.get(key)
+
+def set_cache(key: str, value: str, ex: int):
+    if REDIS_HOST:
+        redis_client_api.set(key, value, ex=ex)
+    else:
+        cache[key] = value
+        cache_expire[key] = time.monotonic() + ex
+
+def exists_cache(key: str):
+    if REDIS_HOST:
+        return redis_client_api.exists(key)
+    else:
+        delete_expired_cache()
+        return key in cache
+
+def delete_cache(key: str):
+    if REDIS_HOST:
+        redis_client_api.delete(key)
+    else:
+        del cache[key]
+        if key in cache_expire:
+            del cache_expire[key]
+
+def xread_cache(key: str, id: str):
+    if REDIS_HOST:
+        return redis_client_api.xread(streams={key: id})
+    else:
+        if key not in cache:
+            return None
+        messages = cache[key][id:]
+        result = []
+        for message in messages:
+            id += 1
+            result.append([id, {b"message": message["message"].encode("utf-8")}])
+        return [[key, result]]
+        
+def xadd_cache(key: str, message: str):
+    if REDIS_HOST:
+        redis_client_api.xadd(key, message)
+    else:
+        if key not in cache:
+            cache[key] = []
+        cache[key].append(message)

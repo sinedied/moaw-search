@@ -60,10 +60,10 @@ VERSION = os.environ.get("VERSION", "dev")
 # Init logging
 ###
 
-LOGGING_SYS_LEVEL = os.environ.get("MS_LOGGING_SYS_LEVEL", logging.WARN)
+LOGGING_SYS_LEVEL = os.environ.get("LOGGING_SYS_LEVEL", logging.WARN)
 logging.basicConfig(level=LOGGING_SYS_LEVEL)
 
-LOGGING_APP_LEVEL = os.environ.get("MS_LOGGING_APP_LEVEL", logging.INFO)
+LOGGING_APP_LEVEL = os.environ.get("LOGGING_APP_LEVEL", logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(LOGGING_APP_LEVEL)
 
@@ -72,17 +72,17 @@ logger.setLevel(LOGGING_APP_LEVEL)
 ###
 
 OAI_EMBEDDING_ARGS = {
-    "deployment_id": os.environ.get("MS_OAI_ADA_DEPLOY_ID"),
+    "deployment_id": os.environ.get("OPENAI_ADA_DEPLOY_ID"),
     "model": "text-embedding-ada-002",
 }
 OAI_COMPLETION_ARGS = {
-    "deployment_id": os.environ.get("MS_OAI_GPT_DEPLOY_ID"),
+    "deployment_id": os.environ.get("OPENAI_GPT_DEPLOY_ID"),
     "model": "gpt-3.5-turbo",
 }
 
 logger.info(f"(OpenAI) Using Azure private service ({openai.api_base})")
 openai.api_type = "azure"
-openai.api_base = os.getenv("OPENAI_API_BASE")
+openai.api_base = os.getenv("OPENAI_API_URL")
 openai.api_key = os.getenv("OPENAI_API_TOKEN")
 openai.api_version = "2023-05-15"
 
@@ -93,8 +93,8 @@ openai.api_version = "2023-05-15"
 # Score are following: 0 - Safe, 2 - Low, 4 - Medium, 6 - High
 # See: https://review.learn.microsoft.com/en-us/azure/cognitive-services/content-safety/concepts/harm-categories?branch=release-build-content-safety#severity-levels
 ACS_SEVERITY_THRESHOLD = 2
-ACS_API_BASE = os.environ.get("MS_ACS_API_BASE")
-ACS_API_TOKEN = os.environ.get("MS_ACS_API_TOKEN")
+ACS_API_BASE = os.environ.get("ACS_API_URL")
+ACS_API_TOKEN = os.environ.get("ACS_API_TOKEN")
 logger.info(f"(Azure Content Safety) Using Aure private service ({ACS_API_BASE})")
 acs_client = azure_cs.ContentSafetyClient(
     ACS_API_BASE, AzureKeyCredential(ACS_API_TOKEN)
@@ -104,7 +104,7 @@ acs_client = azure_cs.ContentSafetyClient(
 # Init FastAPI
 ###
 
-ROOT_PATH = os.environ.get("MS_ROOT_PATH", "")
+ROOT_PATH = os.environ.get("API_BASE_PATH", "")
 logger.info(f'Using root path: "{ROOT_PATH}"')
 
 api = FastAPI(
@@ -136,8 +136,8 @@ api.add_middleware(
 QD_COLLECTION = "moaw"
 QD_DIMENSION = 1536
 QD_METRIC = qmodels.Distance.DOT
-QD_HOST = os.environ.get("MS_QD_HOST")
-QD_PORT = os.environ.get("MS_QD_PORT", 6333)
+QD_HOST = os.environ.get("QD_HOST")
+QD_PORT = os.environ.get("QD_PORT", 6333)
 QD_USE_HTTPS = True if os.environ.get("MS_QD_USE_HTTPS", "false").lower() == "true" else None
 qd_client = QdrantClient(host=QD_HOST, port=QD_PORT, https=QD_USE_HTTPS, verify=False)
 
@@ -159,7 +159,7 @@ except Exception:
 
 GLOBAL_CACHE_TTL_SECS = 60 * 60  # 1 hour
 SUGGESTION_TOKEN_TTL_SECS = 60 * 10  # 10 minutes
-REDIS_HOST = os.environ.get("MS_REDIS_HOST")
+REDIS_HOST = os.environ.get("REDIS_HOST")
 REDIS_STREAM_STOPWORD = "STOP"
 
 if REDIS_HOST:

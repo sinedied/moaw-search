@@ -20,17 +20,17 @@ Create a local configuration file, a file named `.env` at the root of the projec
 
 ```bash
 # Misc
-MS_LOGGING_APP_LEVEL=DEBUG
+LOGGING_APP_LEVEL=DEBUG
 
 # Redis
 MS_REDIS_DB=0
 
 # Azure Cognitive Services
-MS_ACS_API_BASE=https://[resource_name].cognitiveservices.azure.com
-MS_ACS_API_TOKEN=[service_token]
-MS_OAI_ADA_DEPLOY_ID=[deployment_name]
-MS_OAI_GPT_DEPLOY_ID=[deployment_name]
-OPENAI_API_BASE=https://[resource_name].openai.azure.com
+ACS_API_URL=https://[resource_name].cognitiveservices.azure.com
+ACS_API_TOKEN=[service_token]
+OPENAI_ADA_DEPLOY_ID=[deployment_name]
+OPENAI_GPT_DEPLOY_ID=[deployment_name]
+OPENAI_API_URL=https://[resource_name].openai.azure.com
 
 # Azure SDK
 # Here, example with a a service principal with a client secret

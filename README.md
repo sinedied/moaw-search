@@ -1,6 +1,6 @@
 # MOAW Search
 
-> 👋🏻 Demo available at [ms-clesne-2-26w0ryrv46wo.westeurope.cloudapp.azure.com](https://ms-clesne-2-26w0ryrv46wo.westeurope.cloudapp.azure.com).
+> 👋🏻 Demo available [here](https://agreeable-glacier-072729003.3.azurestaticapps.net/).
 
 MOAW Search is a search engine for the [MOAW](https://microsoft.github.io/moaw/) workshops. It use [Embeddings](https://platform.openai.com/docs/guides/embeddings) to find the most similar sentences to the query. Either hosted on [Azure Cognitive Services](https://learn.microsoft.com/en-us/azure/cognitive-services/what-are-cognitive-services) or [Azure Kubernetes Services (AKS)](https://learn.microsoft.com/en-us/azure/aks/intro-kubernetes). Search queries can be asked in natural language. It uses [Qdrant to index the data](https://github.com/qdrant/qdrant) and [Redis to cache the results](https://github.com/redis/redis). Suggestions are streamed from remote to the client in real time [using server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events).
 
@@ -16,75 +16,33 @@ OpenAI models used are:
 
 ### Run locally
 
-Create a local configuration file, a file named `.env` at the root of the project:
+To run the application locally, you need:
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/)
+- A deployed instance of Azure Cognitive Services Safety Content
+- A deployed instance of Azure OpenAI with the following models:
+  - `gpt-3.5-turbo`
+  - `text-embedding-ada-002`
+
+Create a file named `.env` at the root of the project, with at least the following variables:
 
 ```bash
-# Misc
-LOGGING_APP_LEVEL=DEBUG
-
-# Redis
-MS_REDIS_DB=0
-
-# Azure Cognitive Services
+# Azure Cognitive Services Safety Content
 ACS_API_URL=https://[resource_name].cognitiveservices.azure.com
-ACS_API_TOKEN=[service_token]
-OPENAI_ADA_DEPLOY_ID=[deployment_name]
-OPENAI_GPT_DEPLOY_ID=[deployment_name]
+ACS_API_TOKEN=[api_token]
+
+# OpenAI
 OPENAI_API_URL=https://[resource_name].openai.azure.com
-
-# Azure SDK
-# Here, example with a a service principal with a client secret
-# See: https://learn.microsoft.com/en-us/python/api/azure-identity/azure.identity.environmentcredential?view=azure-python
-AZURE_AUTHORITY_HOST=https://login.microsoftonline.com
-AZURE_CLIENT_ID=[client_id]
-AZURE_CLIENT_SECRET=[client_secret]
-AZURE_TENANT_ID=[tenant_id]
+OPENAI_API_TOKEN=[api_token]
 ```
 
-This will build locally the containers, start them, and display the logs:
+You can see the full list of supported variables in the [`.example.env.`](./.example.env) file.
 
-```bash
-make build start logs
-```
+Then run the command `npm start` to start the application.
+This build the containers for the API, and start the UI dev server at [http://localhost:4280](http://localhost:4280).
 
-Then, go to [http://127.0.0.1:8081](http://127.0.0.1:8081).
+### Deploy on Azure
 
-### Deploy locally
-
-All deployments are container based. You can deploy locally with Docker Compose or in Kubernetes with Helm.
-
-```yaml
-# values.yaml
-serviceAccountName: moaw-search-sa
-ingress:
-  host: app.contoso.com
-api:
-  acs:
-    base: https://[deployment].cognitiveservices.azure.com
-    token: xxx-xxx-xxx
-  oai:
-    ada_deploy_id: text-embedding-ada-002
-    base: https://[deployment].openai.azure.com
-    gpt_deploy_id: gpt-35-turbo
-```
-
-```bash
-# In Kubernetes, with Helm
-NAMESPACE=moaw-search make deploy
-
-# Locally, with Docker Compose
-make build start logs
-```
-
-### Deploy in production
-
-Deployment is container based. Use Helm to install the latest released chart:
-
-```bash
-helm repo add clemlesne-moaw-search https://clemlesne.github.io/moaw-search
-helm repo update
-helm upgrade --install default clemlesne-moaw-search/moaw-search
-```
+TODO
 
 ### Get API docs
 

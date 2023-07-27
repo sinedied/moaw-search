@@ -20,6 +20,15 @@ echo "$REGISTRY_PASSWORD" | docker login \
 docker image tag search-api "$REGISTRY_NAME.azurecr.io/search-api:$commit_sha"
 docker image push "$REGISTRY_SERVER/search-api:$commit_sha"
 
+az containerapp secret set \
+  --name "${CONTAINER_APP_NAMES[1]}" \
+  --resource-group "$RESOURCE_GROUP_NAME" \
+  --secrets \
+    ACS_API_KEY="$CONTENT_SAFETY_API_KEY" \
+    OPENAI_API_KEY="$OPENAI_API_KEY" \
+    REDIS_KEY="$REDIS_KEY" \
+  --output tsv
+
 az containerapp update \
   --name "${CONTAINER_APP_NAMES[0]}" \
   --resource-group "$RESOURCE_GROUP_NAME" \
@@ -32,12 +41,12 @@ az containerapp update \
     QD_PORT="80" \
     REDIS_HOST="${REDIS_HOSTNAME}" \
     ACS_API_URL="${CONTENT_SAFETY_ENDPOINT}" \
-    ACS_API_KEY="${CONTENT_SAFETY_API_KEY}" \
+    ACS_API_KEY="secretref:CONTENT_SAFETY_API_KEY" \
     OPENAI_ADA_DEPLOY_ID="${OPENAI_MODEL_NAMES[0]}" \
     OPENAI_GPT_DEPLOY_ID="${OPENAI_MODEL_NAMES[1]}" \
     OPENAI_API_URL="${OPENAI_ENDPOINT}" \
-    OPENAI_API_KEY="${OPENAI_API_KEY}" \
-    REDIS_KEY="${REDIS_KEY}" \
+    OPENAI_API_KEY="secretref:OPENAI_API_KEY" \
+    REDIS_KEY="secretref:REDIS_KEY" \
   --query "properties.configuration.ingress.fqdn" \
   --output tsv
 

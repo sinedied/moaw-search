@@ -1,8 +1,10 @@
 import { FastifyBaseLogger } from 'fastify';
 import fp from 'fastify-plugin';
-import { Configuration, OpenAIApi } from 'openai';
+import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
 import { AppConfig } from './config.js';
 import { anonymizeString } from '../lib/util.js';
+
+export type CompletionMessages = Array<ChatCompletionRequestMessage>;
 
 // The use of fastify-plugin is required to be able
 // to export the decorators to the outer scope
@@ -50,7 +52,7 @@ export class OpenAI {
   constructor(public readonly completion: OpenAIApi, public readonly embeddings: OpenAIApi, readonly config: AppConfig, private readonly logger: FastifyBaseLogger) {
   }
 
-  async getVectorFromText(prompt: string, user: string): Promise<number[]> {
+  async getVectorFromText(prompt: string, user: string, signal?: AbortSignal): Promise<number[]> {
     const anonymizedUser = anonymizeString(user);
 
     try {
@@ -58,12 +60,37 @@ export class OpenAI {
         model: 'text-embedding-ada-002',
         input: prompt,
         user: anonymizedUser,
-      });
+      }, { signal });
       return response.data.data[0].embedding;
     } catch (_error: unknown) {
       const error = _error as Error;
       this.logger.error(`OpenAI embeddings error: ${error.message}`);
       return [];
     }
+  }
+
+  async getChatCompletion(messages: CompletionMessages, user: string, signal?: AbortSignal): Promise<string> {
+    const anonymizedUser = anonymizeString(user);
+    
+    try {
+      // TODO: support streaming
+      const response = await this.completion.createChatCompletion({
+        model: 'gpt-35-turbo',
+        messages,
+        presence_penalty: 1, // Increase likelihood to talk about new topics
+        stream: false,
+        user: anonymizedUser,
+      }, { signal });
+
+      const content = response.data?.choices[0].message?.content;
+      if (content) {
+        this.logger.debug(`Completion result: ${content}`);
+        return content;
+      }
+    } catch (_error: unknown) {
+      const error = _error as Error;
+      this.logger.error(`OpenAI completion error: ${error.message}`);
+    }
+    return '';
   }
 }

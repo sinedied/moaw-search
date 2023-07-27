@@ -10,3 +10,7 @@ export function anonymizeString(str: string): string {
 export function createTokenCacheKey(token: string): string {
   return `token:${token}`;
 }
+
+export async function delay(time: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, time));
+}

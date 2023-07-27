@@ -33,6 +33,7 @@
     "fastify": "^4.0.0",
     "fastify-cli": "^5.7.0",
     "fastify-plugin": "^4.0.0",
+    "fastify-sse-v2": "^3.1.2",
     "openai": "^3.3.0",
     "uuid": "^9.0.0"
   },

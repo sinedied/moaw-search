@@ -2,6 +2,8 @@ import { FastifyPluginAsync, FastifyRequest } from "fastify"
 import { v4 as uuidv4 } from 'uuid';
 import { createTokenCacheKey } from "../../lib/util.js";
 import { Cache } from "../../plugins/cache.js";
+import { SearchAnswer, SearchResult } from "../../models/search.js";
+import { Metadata } from "../../models/metadata.js";
 
 export type SearchRequest = FastifyRequest<{
   Querystring: { 
@@ -10,35 +12,6 @@ export type SearchRequest = FastifyRequest<{
     user: string;
   }
 }>;
-
-export type Metadata = {
-  audience: string[];
-  authors: string[];
-  description: string;
-  language: string;
-  last_updated: string;
-  tags: string[];
-  title: string;
-  url: string;
-}
-
-export type SearchAnswer = {
-  id: string;
-  metadata: Metadata;
-  score: number;
-}
-
-export type SearchStats = {
-  time: number;
-  total: number;
-}
-
-export type SearchResult = {
-  answers: SearchAnswer[];
-  query: string;
-  stats: SearchStats;
-  suggestion_token: string;
-}
 
 const search: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
@@ -112,7 +85,7 @@ QUERY END`;
       fastify.cache.set(tokenKey, searchResult, Cache.SuggestionTtl);
       request.log.info(`Search took ${searchResult.stats.time}ms`);
 
-      return results;
+      return searchResult;
     }
   });
 }

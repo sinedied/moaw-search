@@ -1,5 +1,5 @@
 import { FastifyPluginAsync, FastifyRequest } from "fastify"
-import { createTokenCacheKey } from "../../lib/util.js";
+import { createSuggestionCacheKey, createTokenCacheKey } from "../../lib/util.js";
 import { Cache } from "../../plugins/cache.js";
 import { SearchResult } from "../../models/search.js";
 import { CompletionMessages } from "../../plugins/openai.js";
@@ -28,6 +28,13 @@ const suggestion: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
   fastify.get('/:token', suggestionSchema, async function (request: SuggestionRequest, reply) {
     const { token } = request.params;
     const { user } = request.query;
+    const suggestionCacheKey = createSuggestionCacheKey(token);
+    const cachedSuggestion = fastify.cache.get(suggestionCacheKey);
+    if (cachedSuggestion) {
+      request.log.info(`Found cached suggestion for token: ${token}`);
+      return cachedSuggestion;
+    }
+    
     const tokenKey = createTokenCacheKey(token);
     const search = fastify.cache.get(tokenKey);
 
@@ -59,10 +66,12 @@ const suggestion: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
     //   fastify.cache.delete(tokenKey);
     // });
 
-    fastify.cache.set(tokenKey, search, Cache.SuggestionTtl);
+    fastify.cache.set(suggestionCacheKey, completion, Cache.SuggestionTtl);
 
-    reply.sse({ data: completion });
-    reply.sse({ event: 'close' });
+    return completion;
+
+    // reply.sse({ data: JSON.stringify(completion) });
+    // reply.sse({ event: 'close' });
   });
 }
 

@@ -1,8 +1,11 @@
 // This file contains code that we reuse between our tests.
-const helper = require('fastify-cli/helper.js')
+import * as helper from 'fastify-cli/helper.js'
 import * as path from 'path'
 import * as tap from 'tap';
+import { fileURLToPath } from 'url'
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 export type Test = typeof tap['Test']['prototype'];
 
 const AppPath = path.join(__dirname, '..', 'src', 'app.ts')

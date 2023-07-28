@@ -59,12 +59,7 @@
     "envs": [
       "node",
       "jest"
-    ],
-    "rules": {
-      "@typescript-eslint/no-unsafe-argument": "off",
-      "@typescript-eslint/no-confusing-void-expression": "off",
-      "@typescript-eslint/no-floating-promises": "off"
-    }
+    ]
   },
   "engines": {
     "node": ">=18.0.0",

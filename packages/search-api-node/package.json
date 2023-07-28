@@ -14,7 +14,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "dev": "npm run build && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch\" \"npm:dev:start\"",
-    "dev:start": "fastify start --ignore-watch=.ts$ -w -l info -P dist/app.js | pino-pretty",
+    "dev:start": "fastify start --ignore-watch=.ts$ -w -l debug -P dist/app.js | pino-pretty",
     "lint": "xo",
     "lint:fix": "xo --fix",
     "docker:build": "docker build --tag a11y-api .",

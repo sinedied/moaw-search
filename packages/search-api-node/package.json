@@ -46,7 +46,7 @@
     "pino-pretty": "^10.2.0",
     "tap": "^16.1.0",
     "ts-node": "^10.4.0",
-    "typescript": "^4.5.4",
+    "typescript": "^5.1.6",
     "xo": "^0.55.0"
   },
   "prettier": {
@@ -59,7 +59,12 @@
     "envs": [
       "node",
       "jest"
-    ]
+    ],
+    "rules": {
+      "@typescript-eslint/no-unsafe-argument": "off",
+      "@typescript-eslint/no-confusing-void-expression": "off",
+      "@typescript-eslint/no-floating-promises": "off"
+    }
   },
   "engines": {
     "node": ">=18.0.0",

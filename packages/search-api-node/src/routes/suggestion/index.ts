@@ -32,7 +32,10 @@ const suggestion: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
     const cachedSuggestion = fastify.cache.get(suggestionCacheKey);
     if (cachedSuggestion) {
       request.log.info(`Found cached suggestion for token: ${token}`);
-      return cachedSuggestion;
+
+      reply.sse({ data: JSON.stringify(cachedSuggestion) });
+      reply.sseContext.source.end();
+      return;
     }
     
     const tokenKey = createTokenCacheKey(token);

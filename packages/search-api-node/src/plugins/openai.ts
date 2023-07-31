@@ -2,7 +2,7 @@ import { FastifyBaseLogger } from 'fastify';
 import fp from 'fastify-plugin';
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from 'openai';
 import { AppConfig } from './config.js';
-import { anonymizeString } from '../lib/util.js';
+import { anonymizeString, retry } from '../lib/util.js';
 
 export type CompletionMessages = Array<ChatCompletionRequestMessage>;
 
@@ -56,11 +56,11 @@ export class OpenAI {
     const anonymizedUser = anonymizeString(user);
 
     try {
-      const response = await this.embeddings.createEmbedding({
+      const response = await retry(async () => this.embeddings.createEmbedding({
         model: 'text-embedding-ada-002',
         input: prompt,
         user: anonymizedUser,
-      }, { signal });
+      }, { signal }), 3);
       return response.data.data[0].embedding;
     } catch (_error: unknown) {
       const error = _error as Error;
@@ -74,13 +74,13 @@ export class OpenAI {
     
     try {
       // TODO: support streaming
-      const response = await this.completion.createChatCompletion({
+      const response = await retry(async () => this.completion.createChatCompletion({
         model: 'gpt-35-turbo',
         messages,
         presence_penalty: 1, // Increase likelihood to talk about new topics
         stream: false,
         user: anonymizedUser,
-      }, { signal });
+      }, { signal }), 3);
 
       const content = response.data?.choices[0].message?.content;
       if (content) {

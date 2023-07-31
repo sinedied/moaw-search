@@ -68,10 +68,8 @@ const suggestion: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
 
     fastify.cache.set(suggestionCacheKey, completion, Cache.SuggestionTtl);
 
-    return completion;
-
-    // reply.sse({ data: JSON.stringify(completion) });
-    // reply.sse({ event: 'close' });
+    reply.sse({ data: JSON.stringify(completion) });
+    reply.sseContext.source.end();
   });
 }
 

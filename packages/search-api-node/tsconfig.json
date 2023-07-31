@@ -4,7 +4,8 @@
     "outDir": "dist",
     "module": "esnext",
     "sourceMap": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "lib": ["esnext", "dom"],
   },
   "include": ["src/**/*.ts"]
 }

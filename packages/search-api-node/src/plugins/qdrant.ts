@@ -68,4 +68,12 @@ export class Qdrant {
     const result = await this.qdrant.count(qdCollection, { exact: false });
     return result.count;
   }
+
+  async retrieve(ids: string[]) {
+    return this.qdrant.retrieve(qdCollection, { ids });
+  }
+
+  async upsert(batch: components["schemas"]["Batch"]) {
+    return this.qdrant.upsert(qdCollection, { batch });
+  }
 }

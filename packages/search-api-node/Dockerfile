@@ -7,7 +7,7 @@ WORKDIR /app
 COPY ./package*.json ./
 COPY ./packages/search-api-node ./packages/search-api-node
 RUN npm ci --cache /tmp/empty-cache
-RUN npm run build:ts --workspace=search-api-node
+RUN npm run build --workspace=search-api-node
 
 # Run Node.js app
 # ------------------------------------

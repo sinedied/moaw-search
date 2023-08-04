@@ -48,6 +48,8 @@ var rules = scale && contains(options.scale, 'rules') ? options.scale.rules : []
 
 var image = contains(options, 'image') ? options.image : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
 
+var volumeMounts = contains(options, 'volumeMounts') ? options.volumeMounts : []
+
 // ---------------------------------------------------------------------------
 
 var uid = uniqueString(resourceGroup().id, projectName, environment, location)
@@ -60,6 +62,28 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2022-03-01' exi
   name: 'cae-${projectName}-${environment}-${uid}'
 }
 
+var allStorageNames = map(volumeMounts, v => v.storageName)
+var uniqueStorageNames = union(allStorageNames, allStorageNames)
+
+resource storageAccount 'Microsoft.Storage/storageAccounts@2022-09-01' existing = if (!empty(uniqueStorageNames)) {
+  name: 'storage${uid}'
+}
+
+// Azure Container Apps Storage Mounts
+// https://docs.microsoft.com/azure/templates/microsoft.app/managedenvironments/storages?tabs=bicep
+resource storageMounts 'Microsoft.App/managedEnvironments/storages@2023-04-01-preview' = [for name in uniqueStorageNames: {
+  parent: containerEnvironment
+  name: name
+  properties: {
+    azureFile: {
+      accountName: storageAccount.name
+      shareName: name
+      accountKey: storageAccount.listKeys().keys[0].value
+      accessMode: 'ReadWrite'
+    }
+  }
+}]
+
 var containerUid = uniqueString(uid, name)
 var truncatedname = substring(name, 0, min(length(name), 15))
 
@@ -71,12 +95,10 @@ resource container 'Microsoft.App/containerApps@2022-03-01' = {
   tags: tags
   properties: {
     configuration: {
-      // activeRevisionsMode: 'Single'
       ingress: ingress ? {
         allowInsecure: allowInsecure
         external: external
         targetPort: targetPort
-        // transport: 'Auto'
       } : {}
       registries: [
         {
@@ -103,13 +125,18 @@ resource container 'Microsoft.App/containerApps@2022-03-01' = {
             //   value: 'string'
             // }
           ]
-          // image: '${containerRegistry.properties.loginServer}/${name}'
           image: image
           name: name
           resources: {
             cpu: json(cpu)  // float values aren't currently supported
             memory: memory
           }
+          volumeMounts: [
+            for (volumeMount, i) in volumeMounts: {
+              volumeName: volumeMount.volumeName
+              mountPath: volumeMount.mountPath
+            }
+          ]
         }
       ]
       scale: {
@@ -117,9 +144,19 @@ resource container 'Microsoft.App/containerApps@2022-03-01' = {
         maxReplicas: maxReplicas
         rules: rules
       }
+      volumes: [
+        for (volumeMount, i) in volumeMounts: {
+          name: volumeMount.volumeName
+          storageName: volumeMount.storageName
+          storageType: 'AzureFile'
+        }
+      ]
       // revisionSuffix: 'string'
     }
   }
+  dependsOn: [
+    storageMounts
+  ]
 }
 
 // ---------------------------------------------------------------------------

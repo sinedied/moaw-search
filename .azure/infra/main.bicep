@@ -49,6 +49,18 @@ module registry './modules/registry.bicep' = {
   }
 }
 
+module storage './modules/storage.bicep' = {
+  name: 'storage'
+  scope: resourceGroup()
+  params: {
+    projectName: projectName
+    environment: environment
+    location: location
+    tags: commonTags
+    options: contains(config, 'storage') ? config.storage : {}
+  }
+}
+
 // module database './modules/database.bicep' = {
 //   name: 'database'
 //   scope: resourceGroup()
@@ -147,6 +159,8 @@ output logsWorkspaceCustomerId string = logs.outputs.logsWorkspaceCustomerId
 
 output registryName string = registry.outputs.registryName
 output registryServer string = registry.outputs.registryServer
+
+output storageName string = storage.outputs.storageName
 
 // output databaseName string = database.outputs.databaseName
 

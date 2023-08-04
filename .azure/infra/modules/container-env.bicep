@@ -34,6 +34,7 @@ resource containerEnvironment 'Microsoft.App/managedEnvironments@2022-03-01' = {
   tags: tags
   properties: {
     appLogsConfiguration: {
+      // can be 'azure-monitor' for simple logging to Azure Monitor
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
         customerId: logsWorkspace.properties.customerId

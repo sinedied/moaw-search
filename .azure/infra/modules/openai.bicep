@@ -48,7 +48,9 @@ resource openai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   }
 }
 
-resource models 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = [for model in modelsConfig: {
+// Workaround as models can't be deplyed in parallel
+@batchSize(1)
+resource models 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = [for (model, i) in modelsConfig: {
   parent: openai
   name: model.name
   sku: {

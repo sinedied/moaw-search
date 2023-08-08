@@ -17,8 +17,8 @@
     "dev:start": "fastify start --ignore-watch=.ts$ -w -l debug -P dist/app.js | pino-pretty",
     "lint": "xo",
     "lint:fix": "xo --fix",
-    "docker:build": "docker build --tag a11y-api --file ./Dockerfile ../..",
-    "docker:run": "docker run --rm --publish 3000:3000 --env-file .env a11y-api",
+    "docker:build": "docker build --tag search-api-node --file ./Dockerfile ../..",
+    "docker:run": "docker run --rm --publish 3000:3000 --env-file .env search-api-node",
     "clean": "rm -rf dist *.tgz"
   },
   "author": {
